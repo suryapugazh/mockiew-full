@@ -201,29 +201,30 @@ export function useInterviewLifecycle({
     }
   }, [sessionState, stopVoice, stopSession, handleInterviewCompletion]);
 
-  // ─── Completion Trigger 3: 60-second hard timeout ────────────────────────
+  // ─── Completion Trigger 3: 60-second timeout from FIRST avatar speech ────────
+  // Timer starts when the avatar first begins speaking — not on mount —
+  // so the countdown accurately reflects the actual interview duration.
+  const timerStartedRef = useRef(false);
+  const timeoutIdRef    = useRef(null);
+
   useEffect(() => {
-    const INTERVIEW_TIMEOUT_MS = 60_000;
+    if (!isAvatarTalking || timerStartedRef.current) return;
+    timerStartedRef.current = true;
 
-    const timer = setTimeout(() => {
-      const summary = computeInterviewSummary();
-
-      console.log("[useInterviewLifecycle] Timeout reached.");
-      console.log("Transcript:", JSON.stringify(conversationRef.current, null, 2));
-      console.log("Summary:", summary);
-
+    timeoutIdRef.current = setTimeout(() => {
       stopVoice();
       stopSession();
       handleInterviewCompletion("timeout");
-    }, INTERVIEW_TIMEOUT_MS);
+    }, 60_000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAvatarTalking]);
 
-    return () => clearTimeout(timer);
-    // Run once on mount only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Cleanup the timeout if component unmounts before it fires
+  useEffect(() => () => clearTimeout(timeoutIdRef.current), []);
 
   return {
     onAvatarClose,
     summaryRef,
+    handleInterviewCompletion, // exposed for manual End button in UI
   };
 }

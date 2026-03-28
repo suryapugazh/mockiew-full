@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
+import toast from "react-hot-toast";
 import { FASTAPI_URL } from "../config/apiUrls";
 
 // ─── Enterprise color palette (Lottie RGBA arrays) ───────────────────────────
@@ -243,6 +244,7 @@ export default function ProcessingPage({
   onSessionReady,
   onEvaluationReady,
   evaluationPayload,
+  onError,
 }) {
   const steps = STEPS[mode] ?? STEPS.pre;
 
@@ -276,33 +278,81 @@ export default function ProcessingPage({
     lastProcessedMode.current = mode;
 
     async function run() {
-      if (mode === "pre") {
-        const formData = new FormData();
-        formData.append("resume", resumeData);
+      try {
+        if (mode === "pre") {
+          const formData = new FormData();
+          formData.append("resume", resumeData);
 
-        const parseRes = await fetch(`${FASTAPI_URL}/parse`, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await parseRes.json();
+          let parseRes;
+          try {
+            parseRes = await fetch(`${FASTAPI_URL}/parse`, {
+              method: "POST",
+              body: formData,
+            });
+          } catch {
+            toast.error("Cannot reach the backend. Is the FastAPI server running?", { id: "backend-down" });
+            onError?.();
+            return;
+          }
 
-        const sessionRes = await fetch(`${FASTAPI_URL}/create-session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: data.name, questions: data.questions }),
-        });
-        const { session_token } = await sessionRes.json();
-        onSessionReady({ sessionToken: session_token, interviewData: data });
-      }
+          if (!parseRes.ok) {
+            toast.error(`Resume parsing failed (${parseRes.status}). Please try again.`, { id: "parse-error" });
+            onError?.();
+            return;
+          }
 
-      if (mode === "post") {
-        const res = await fetch(`${FASTAPI_URL}/evaluate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(evaluationPayload),
-        });
-        const result = await res.json();
-        onEvaluationReady(result);
+          const data = await parseRes.json();
+
+          let sessionRes;
+          try {
+            sessionRes = await fetch(`${FASTAPI_URL}/create-session`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: data.name, questions: data.questions }),
+            });
+          } catch {
+            toast.error("Failed to create interview session. Check your backend connection.", { id: "session-error" });
+            onError?.();
+            return;
+          }
+
+          if (!sessionRes.ok) {
+            toast.error(`Session creation failed (${sessionRes.status}). Please try again.`, { id: "session-error" });
+            onError?.();
+            return;
+          }
+
+          const { session_token } = await sessionRes.json();
+          onSessionReady({ sessionToken: session_token, interviewData: data });
+        }
+
+        if (mode === "post") {
+          let res;
+          try {
+            res = await fetch(`${FASTAPI_URL}/evaluate`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(evaluationPayload),
+            });
+          } catch {
+            toast.error("Cannot reach the backend. Is the FastAPI server running?", { id: "backend-down" });
+            onError?.();
+            return;
+          }
+
+          if (!res.ok) {
+            toast.error(`Evaluation failed (${res.status}). Please try again.`, { id: "eval-error" });
+            onError?.();
+            return;
+          }
+
+          const result = await res.json();
+          onEvaluationReady(result);
+        }
+      } catch (err) {
+        console.error("[ProcessingPage] Unexpected error:", err);
+        toast.error("Something went wrong. Please try again.", { id: "generic-error" });
+        onError?.();
       }
     }
 
