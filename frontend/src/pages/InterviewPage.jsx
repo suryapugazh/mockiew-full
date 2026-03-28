@@ -87,12 +87,22 @@ function CtrlBtn({ icon, label, active, locked, onClick }) {
       title={locked ? "Active mode — currently in use" : label}
       className={[
         "flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl",
-        "!bg-transparent !border-0 !shadow-none transition-colors min-w-[56px]",
-        active ? "!bg-white/10 text-white hover:!bg-white/15 hover:!text-white"
-               : "text-white/50 hover:!text-white/80 hover:!bg-white/[0.06]",
+        "!bg-transparent !border-0 !shadow-none transition-all min-w-[56px]",
+        active
+          ? "!bg-white/10 text-white hover:!bg-white/15 hover:!text-white"
+          : "text-white/35 hover:!text-white/70 hover:!bg-white/[0.06]",
         locked ? "!cursor-not-allowed" : "cursor-pointer",
       ].join(" ")}>
-      {icon}
+      {/* Icon wrapper — adds diagonal strikeout when inactive/unselected */}
+      <div className="relative">
+        {icon}
+        {!active && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-[130%] h-[1.5px] bg-current opacity-60 rounded-full"
+              style={{ transform: "translateX(-15%) rotate(-38deg)" }} />
+          </div>
+        )}
+      </div>
       <span className="text-[10px] leading-none tracking-tight">{label}</span>
     </button>
   );
@@ -148,19 +158,24 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
     return () => stream?.getTracks().forEach(t => t.stop());
   }, [selfViewOpen]);
 
-  // ── Timer — starts on first avatar speech ─────────────────────────────────
+  // ── Timer — starts on first avatar speech, persists through pauses ──────────
+  // BUG FIX: store interval in a ref so React cleanup doesn't kill it when
+  // isAvatarTalking toggles false between questions.
   const timerStartedRef = useRef(false);
+  const timerIntervalRef = useRef(null);
   useEffect(() => {
     if (!isAvatarTalking || timerStartedRef.current) return;
     timerStartedRef.current = true;
     setTimerStarted(true);
-    const t = setInterval(() => setTimeLeft(p => {
-      if (p <= 1) { clearInterval(t); return 0; }
+    timerIntervalRef.current = setInterval(() => setTimeLeft(p => {
+      if (p <= 1) { clearInterval(timerIntervalRef.current); return 0; }
       return p - 1;
     }), 1000);
-    return () => clearInterval(t);
+    // NO return cleanup — interval must survive isAvatarTalking going false
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAvatarTalking]);
+  // Only clear on real unmount
+  useEffect(() => () => clearInterval(timerIntervalRef.current), []);
 
   // ── Network status toast ──────────────────────────────────────────────────
   useEffect(() => {
@@ -239,33 +254,41 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
           animate={{ width: chatOpen ? "58%" : "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 32 }}>
 
-          {/* Video — 16:9 default, fills stage when chat open */}
-          <video ref={videoRef} autoPlay playsInline
-            className={`object-cover border border-white/[0.05] shadow-2xl transition-all duration-500 ${
-              chatOpen
-                ? "w-full h-full rounded-xl"               // fills narrowed stage, slight round
-                : "rounded-lg"                              // 16:9, minimal rounding
-            }`}
-            style={chatOpen
-              ? { backgroundImage: 'url("/avatar.png")', backgroundSize: "cover" }
-              : {
-                  aspectRatio: "16/9",
-                  width: "100%",
-                  maxHeight: "calc(100vh - 140px)",
-                  backgroundImage: 'url("/avatar.png")',
-                  backgroundSize: "cover",
-                }
-            }
-          />
+          {/* Video — padded container keeps video from touching edges, no crop */}
+          <div className={`flex items-center justify-center w-full h-full ${
+            chatOpen ? 'p-3' : 'px-10 py-8'
+          }`}>
+            <video ref={videoRef} autoPlay playsInline
+              className={`object-contain shadow-2xl border border-white/[0.05] transition-all duration-500 ${
+                chatOpen ? 'rounded-xl w-full h-full' : 'rounded-lg'
+              }`}
+              style={chatOpen
+                ? {
+                    backgroundImage: 'url("/avatar.png")',
+                    backgroundSize: "contain",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                  }
+                : {
+                    aspectRatio: "16/9",
+                    maxWidth: "82%",
+                    maxHeight: "calc(100vh - 180px)",
+                    backgroundImage: 'url("/avatar.png")',
+                    backgroundSize: "contain",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                  }
+              }
+            />
+          </div>
 
-          {/* Transcript overlay — centers under avatar, above controls */}
+          {/* Transcript overlay — auto-sizes to content, always centered in stage */}
           <AnimatePresence>
             {showTranscript && lastAvatarText && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }}
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10"
-                style={{ width: chatOpen ? "90%" : "min(680px, 88%)" }}>
-                <div className="px-5 py-4 bg-black/75 backdrop-blur-md rounded-2xl border border-white/[0.08]">
+                className="absolute bottom-4 left-0 right-0 mx-auto z-10 flex justify-center px-6">
+                <div className="px-5 py-4 bg-black/75 backdrop-blur-md rounded-2xl border border-white/[0.08] max-w-[600px] w-full">
                   <p className="text-[10px] font-medium tracking-widest uppercase text-white/30 mb-2">Interviewer said</p>
                   <p className="text-[14px] text-white/90 leading-relaxed tracking-tight">{lastAvatarText}</p>
                 </div>
