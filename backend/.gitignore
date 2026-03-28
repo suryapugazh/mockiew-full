@@ -1,0 +1,60 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+.flaskenv
+
+# Editors and IDEs
+.idea/  # JetBrains IDEs (PyCharm, etc)
+.vscode/ # VS Code
+*.swp   # vim temporary files
+*~
+
+# OS-specific files
+.DS_Store # macOS
+
+# Testing and coverage
+.tox/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Databases
+*.db
+test.db
+log.txt
+
+# FastAPI Cloud deployment
+.fastapicloudignore # Use this file for specific cloud ignore rules
+
+# Specific FastAPI/Pydantic generated files
+site/
+docs_build/
+site_build/

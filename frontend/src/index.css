@@ -1,0 +1,393 @@
+/* Tailwind layers — must come first */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   MOCKIEW — Global Design System
+   Enterprise SaaS · Clean, High-Density, Precision-Aligned
+   ============================================================ */
+
+/* ── Google Font: Inter ──────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── Design Tokens ───────────────────────────────────────── */
+:root {
+  /* Palette */
+  --color-bg:           #FFFFFF;   /* Page background */
+  --color-surface:      #FAFAFA;   /* Cards, panels, sidebars */
+  --color-border:       #E5E7EB;   /* Slate-200 — all dividers */
+  --color-text-primary: #000000;   /* Body copy, headings */
+  --color-text-secondary: #6B7280; /* Labels, captions, meta */
+  --color-text-disabled: #9CA3AF;  /* Placeholder, disabled states */
+  --color-accent:       #6366F1;   /* Indigo — status indicators only */
+  --color-accent-light: #EEF2FF;   /* Indigo-50 — accent backgrounds */
+
+  /* Typography */
+  --font-family:        'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+                        'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-size-xs:       11px;
+  --font-size-sm:       13px;
+  --font-size-base:     14px;
+  --font-size-md:       15px;
+  --font-size-lg:       16px;
+  --font-size-xl:       18px;
+  --font-size-2xl:      22px;
+  --font-size-3xl:      28px;
+
+  --font-weight-normal:    400;
+  --font-weight-medium:    500;
+  --font-weight-semibold:  600;
+  --font-weight-bold:      700;
+
+  --line-height-tight:   1.25;
+  --line-height-snug:    1.4;
+  --line-height-base:    1.6;
+  --line-height-relaxed: 1.75;
+
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-label:    0.01em;
+  --letter-spacing-caps:     0.06em;
+
+  /* Spacing scale (4px base) */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Borders & Radius */
+  --border:         1px solid var(--color-border);
+  --radius-sm:      4px;
+  --radius:         8px;
+  --radius-md:      10px;
+  --radius-lg:      12px;
+  --radius-full:    9999px;
+
+  /* Shadows — deliberately invisible, depth only */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Transitions */
+  --transition-fast:   100ms ease;
+  --transition-base:   180ms ease;
+  --transition-slow:   280ms ease;
+}
+
+/* ── CSS Reset ───────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* ── Base Document ───────────────────────────────────────── */
+body {
+  font-family:      var(--font-family);
+  font-size:        var(--font-size-base);
+  font-weight:      var(--font-weight-normal);
+  line-height:      var(--line-height-base);
+  color:            var(--color-text-primary);
+  background-color: var(--color-bg);
+  min-height:       100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Typography Scale ────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight:    var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-heading);
+  line-height:    var(--line-height-tight);
+  color:          var(--color-text-primary);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl);  }
+h4 { font-size: var(--font-size-lg);  }
+h5 { font-size: var(--font-size-md);  font-weight: var(--font-weight-medium); }
+h6 { font-size: var(--font-size-base); font-weight: var(--font-weight-medium); }
+
+p {
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+small {
+  font-size:  var(--font-size-sm);
+  color:      var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+a {
+  color:           var(--color-accent);
+  text-decoration: none;
+  transition:      opacity var(--transition-fast);
+}
+a:hover { opacity: 0.75; }
+
+strong { font-weight: var(--font-weight-semibold); }
+
+code, pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size:   var(--font-size-sm);
+}
+
+ul, ol {
+  padding-left: var(--space-5);
+  line-height:  var(--line-height-relaxed);
+}
+
+li { margin-bottom: var(--space-1); }
+
+/* ── Form Elements ───────────────────────────────────────── */
+input,
+textarea,
+select {
+  font-family:      inherit;
+  font-size:        var(--font-size-base);
+  font-weight:      var(--font-weight-normal);
+  color:            var(--color-text-primary);
+  background-color: var(--color-bg);
+  border:           var(--border);
+  border-radius:    var(--radius);
+  padding:          var(--space-2) var(--space-3);
+  line-height:      var(--line-height-snug);
+  outline:          none;
+  width:            100%;
+  transition:       border-color var(--transition-base),
+                    box-shadow    var(--transition-base);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-disabled);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-accent);
+  box-shadow:   0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: var(--color-surface);
+  color:            var(--color-text-disabled);
+  cursor:           not-allowed;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+/* Wrapped in @layer base so Tailwind utility classes always override these defaults */
+@layer base {
+  button {
+    display:          inline-flex;
+    align-items:      center;
+    justify-content:  center;
+    gap:              var(--space-2);
+    font-family:      inherit;
+    font-size:        var(--font-size-base);
+    font-weight:      var(--font-weight-medium);
+    line-height:      1;
+    color:            var(--color-text-primary);
+    background-color: var(--color-bg);
+    border:           var(--border);
+    border-radius:    var(--radius);
+    padding:          var(--space-2) var(--space-4);
+    cursor:           pointer;
+    white-space:      nowrap;
+    transition:       background-color var(--transition-fast),
+                      border-color     var(--transition-fast),
+                      box-shadow       var(--transition-fast),
+                      color            var(--transition-fast);
+    -webkit-user-select: none;
+    user-select:         none;
+  }
+
+  button:hover:not(:disabled) {
+    background-color: var(--color-surface);
+    border-color:     #D1D5DB;
+  }
+
+  button:focus-visible {
+    outline:    none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.20);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  button:disabled {
+    opacity: 0.45;
+    cursor:  not-allowed;
+  }
+}
+
+/* ── Utility: Card / Surface Panel ──────────────────────── */
+.card {
+  background-color: var(--color-surface);
+  border:           var(--border);
+  border-radius:    var(--radius);
+  box-shadow:       var(--shadow-sm);
+  padding:          var(--space-6);
+}
+
+/* ── Utility: Divider ────────────────────────────────────── */
+hr {
+  border:       none;
+  border-top:   var(--border);
+  margin:       var(--space-4) 0;
+}
+
+/* ── Utility: Label / Caption ────────────────────────────── */
+.label {
+  font-size:      var(--font-size-xs);
+  font-weight:    var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  color:          var(--color-text-secondary);
+}
+
+/* ── Utility: Status Badge ───────────────────────────────── */
+/* Indigo accent: ONLY for status indicators, not for buttons */
+.badge {
+  display:          inline-flex;
+  align-items:      center;
+  gap:              var(--space-1);
+  font-size:        var(--font-size-xs);
+  font-weight:      var(--font-weight-medium);
+  letter-spacing:   var(--letter-spacing-label);
+  padding:          2px var(--space-2);
+  border-radius:    var(--radius-full);
+  background-color: var(--color-accent-light);
+  color:            var(--color-accent);
+}
+
+.badge::before {
+  content:          '';
+  display:          inline-block;
+  width:            6px;
+  height:           6px;
+  border-radius:    50%;
+  background-color: var(--color-accent);
+}
+
+/* ── Utility: Fullscreen Center (upload/processing pages) ── */
+.fullscreen-center {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  min-height:      100vh;
+  text-align:      center;
+  gap:             var(--space-4);
+}
+
+/* ── Utility: Upload Drop Zone ───────────────────────────── */
+.upload-container {
+  border:        2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding:       var(--space-12) var(--space-10);
+  cursor:        pointer;
+  transition:    border-color  var(--transition-base),
+                 background-color var(--transition-base);
+  max-width:     480px;
+  width:         100%;
+}
+
+.upload-container:hover {
+  border-color:     #D1D5DB;
+  background-color: var(--color-surface);
+}
+
+.upload-container.dragging {
+  border-color:     var(--color-accent);
+  background-color: var(--color-accent-light);
+}
+
+/* ── Utility: Loader Spinner ─────────────────────────────── */
+.loader {
+  width:         32px;
+  height:        32px;
+  border:        3px solid var(--color-border);
+  border-top:    3px solid var(--color-text-primary);
+  border-radius: 50%;
+  animation:     spin 0.75s linear infinite;
+  margin:        var(--space-4) auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utility: Table (high-density results) ───────────────── */
+table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       var(--font-size-sm);
+}
+
+th {
+  font-size:      var(--font-size-xs);
+  font-weight:    var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  color:          var(--color-text-secondary);
+  text-align:     left;
+  padding:        var(--space-2) var(--space-3);
+  border-bottom:  var(--border);
+  white-space:    nowrap;
+}
+
+td {
+  padding:       var(--space-3);
+  border-bottom: var(--border);
+  color:         var(--color-text-primary);
+  vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+
+tr:hover td {
+  background-color: var(--color-surface);
+}
+
+/* ── Scrollbar (webkit) ──────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background:    #D1D5DB;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+/* ── Selection ───────────────────────────────────────────── */
+::selection {
+  background-color: rgba(99, 102, 241, 0.15);
+  color:            var(--color-text-primary);
+}
