@@ -152,12 +152,15 @@ export default function App() {
     return (
       <ResultPage
         evaluationResult={evaluationResult}
+        evaluationPayload={evaluationPayload}
+        interviewData={interviewData}
         onRestart={() => {
           setStage("upload");
           setResumeData(null);
           setSessionToken("");
           setInterviewData(null);
           setEvaluationResult(null);
+          setEvaluationPayload(null);
         }}
       />
     );

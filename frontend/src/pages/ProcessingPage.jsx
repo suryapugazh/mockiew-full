@@ -56,7 +56,7 @@ const LOTTIE_PRE = {
 };
 
 const LOTTIE_POST = {
-  process:    "/lottie/process-data.json",
+  process:    "/lottie/questions-list.json",
   evaluation: "/lottie/evaluation.json",
   stars:   "/lottie/stars.json",
 };
