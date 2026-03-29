@@ -49,23 +49,29 @@ function recolorLottie(obj) {
 }
 
 // ─── Lottie local paths ───────────────────────────────────────────────────────
-const LOTTIE = {
+const LOTTIE_PRE = {
   parse:    "/lottie/doc-scan.json",
   generate: "/lottie/questions-list.json",
   avatar:   "/lottie/interviewer.json",
 };
 
+const LOTTIE_POST = {
+  process:    "/lottie/process-data.json",
+  evaluation: "/lottie/evaluation.json",
+  stars:   "/lottie/stars.json",
+};
+
 // ─── Step definitions ─────────────────────────────────────────────────────────
 const STEPS = {
   pre: [
-    { key: "parse",    src: LOTTIE.parse,    label: "Analyzing Resume"          },
-    { key: "generate", src: LOTTIE.generate, label: "Personalizing Questions"   },
-    { key: "avatar",   src: LOTTIE.avatar,   label: "Preparing AI Interviewer"  },
+    { key: "parse",    src: LOTTIE_PRE.parse,    label: "Analyzing Resume"          },
+    { key: "generate", src: LOTTIE_PRE.generate, label: "Personalizing Questions"   },
+    { key: "avatar",   src: LOTTIE_PRE.avatar,   label: "Preparing AI Interviewer"  },
   ],
   post: [
-    { key: "parse",    src: LOTTIE.parse,    label: "Analyzing Communication"   },
-    { key: "generate", src: LOTTIE.generate, label: "Computing Behavioral Score" },
-    { key: "avatar",   src: LOTTIE.avatar,   label: "Finalizing Assessment"     },
+    { key: "process",    src: LOTTIE_POST.process,    label: "Analyzing Communication"   },
+    { key: "evaluation", src: LOTTIE_POST.evaluation, label: "Computing Behavioral Score" },
+    { key: "stars",   src: LOTTIE_POST.stars,   label: "Finalizing Assessment"     },
   ],
 };
 

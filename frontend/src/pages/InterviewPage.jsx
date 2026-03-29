@@ -108,11 +108,27 @@ function CtrlBtn({ icon, label, active, locked, onClick }) {
   );
 }
 
+// ─── TypingDots ─────────────────────────────────────────────────────
+function TypingDots() {
+  return (
+    <div className="flex justify-start">
+      <div className="flex items-center gap-1.5 px-3.5 py-3 rounded-2xl bg-slate-100 rounded-bl-sm">
+        {[0, 1, 2].map(i => (
+          <motion.div key={i} className="w-2 h-2 rounded-full bg-slate-400"
+            animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
+            transition={{ duration: 0.85, repeat: Infinity, delay: i * 0.17, ease: "easeInOut" }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── AvatarUI ─────────────────────────────────────────────────────────────────
 function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
   const videoRef       = useRef(null);
   const selfViewRef    = useRef(null);
   const chatInputRef   = useRef(null);
+  const chatBottomRef  = useRef(null); // auto-scroll anchor
   const onAvatarCloseRef = useRef(null);
   const prevStateRef   = useRef(null);
 
@@ -139,11 +155,19 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
       onAvatarClose: () => onAvatarCloseRef.current?.(),
     });
 
+  // Wrap onEvaluationStart so ALL completion paths (timeout, avatar phrase,
+  // disconnect, manual) first show the outro overlay, then transition.
+  const onEvaluationStartSmooth = useCallback((payload) => {
+    onOutro();
+    setTimeout(() => onEvaluationStart(payload), 1300);
+  }, [onOutro, onEvaluationStart]);
+
   const { onAvatarClose, handleInterviewCompletion } = useInterviewLifecycle({
     sessionState, isStreamReady, startSession, stopSession,
     startVoice, stopVoice, attachElement, videoRef, gazeMetrics,
     conversationRef, totalSilenceDurationRef, longSilenceCountRef,
-    avatarStoppedTimestampRef, isAvatarTalking, interviewData, onEvaluationStart,
+    avatarStoppedTimestampRef, isAvatarTalking, interviewData,
+    onEvaluationStart: onEvaluationStartSmooth, // ← smooth wrapper
   });
 
   onAvatarCloseRef.current = onAvatarClose;
@@ -194,6 +218,12 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
   // ── Derived ───────────────────────────────────────────────────────────────
   const lastAvatarText = conversation.filter(m => m.role === "interviewer").pop()?.text;
 
+  // Auto-scroll chat to bottom whenever conversation updates or avatar starts typing
+  useEffect(() => {
+    if (!chatOpen) return;
+    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversation, isAvatarTalking, chatOpen]);
+
   // ── Actions ───────────────────────────────────────────────────────────────
   const openChat = useCallback(() => {
     setChatOpen(true); setInputMode("text"); stopVoice();
@@ -205,11 +235,9 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
   }, [startVoice]);
 
   const handleManualEnd = useCallback(() => {
-    onOutro();
-    setTimeout(() => {
-      stopVoice(); stopSession(); handleInterviewCompletion("manual_exit");
-    }, 700);
-  }, [onOutro, stopVoice, stopSession, handleInterviewCompletion]);
+    // outro is triggered by onEvaluationStartSmooth — just call completion directly
+    stopVoice(); stopSession(); handleInterviewCompletion("manual_exit");
+  }, [stopVoice, stopSession, handleInterviewCompletion]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -251,7 +279,7 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
 
         {/* Avatar stage */}
         <motion.div className="relative bg-zinc-950 flex items-center justify-center overflow-hidden"
-          animate={{ width: chatOpen ? "58%" : "100%" }}
+          animate={{ width: chatOpen ? "70%" : "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 32 }}>
 
           {/* Video — padded container keeps video from touching edges, no crop */}
@@ -302,7 +330,7 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
           {chatOpen && (
             <motion.div initial={{ x: "100%", opacity: 0 }} animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }} transition={{ type: "spring", stiffness: 300, damping: 32 }}
-              className="flex-none bg-white border-l border-slate-200 flex flex-col" style={{ width: "42%" }}>
+              className="flex-none bg-white border-l border-slate-200 flex flex-col" style={{ width: "30%" }}>
 
               <div className="flex-none px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
@@ -327,21 +355,32 @@ function AvatarUI({ interviewData, onEvaluationStart, onOutro }) {
                   ? <p className="text-[12px] text-slate-400 text-center mt-8">Your conversation will appear here.</p>
                   : conversation.slice(-20).map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === "candidate" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                      <div className={`max-w-[88%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
                         msg.role === "candidate" ? "bg-black text-white rounded-br-sm" : "bg-slate-100 text-slate-800 rounded-bl-sm"}`}>
                         {msg.text}
                       </div>
                     </div>
                   ))
                 }
+                {/* Typing indicator — shows while avatar is speaking */}
+                {isAvatarTalking && <TypingDots />}
+                {/* Scroll anchor */}
+                <div ref={chatBottomRef} />
               </div>
 
               <div className="flex-none px-4 py-4 border-t border-slate-100">
                 <div className="flex items-end gap-2">
-                  <textarea ref={chatInputRef} value={message} onChange={e => setMessage(e.target.value)}
+                  <textarea ref={chatInputRef} value={message}
+                    onChange={e => {
+                      setMessage(e.target.value);
+                      // Auto-resize: shrink then grow to fit content
+                      e.target.style.height = 'auto';
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                    }}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleTextSend(); } }}
-                    placeholder="Type your answer… (Enter to send)" rows={2}
-                    className="flex-1 resize-none text-[13px] placeholder:text-slate-400 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:border-black focus:bg-white outline-none leading-relaxed" />
+                    placeholder="Type your answer…" rows={1}
+                    style={{ height: '44px' }}
+                    className="flex-1 resize-none overflow-y-auto text-[13px] placeholder:text-slate-400 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:border-black focus:bg-white outline-none leading-relaxed" />
                   {/* Send button — larger icon */}
                   <button onClick={handleTextSend} disabled={!message.trim()}
                     className="w-11 h-11 flex items-center justify-center rounded-xl !bg-black text-white !border-0 disabled:opacity-40 hover:!bg-zinc-800 hover:!text-white flex-shrink-0">
